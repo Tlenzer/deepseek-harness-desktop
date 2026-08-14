@@ -105,6 +105,7 @@ module.exports = {
     'LICENSE',
     'NOTICE.md',
     'README.md',
+    'THIRD_PARTY_LICENSES.txt',
     'package.json',
   ],
   extraResources: [
@@ -136,6 +137,10 @@ module.exports = {
     {
       from: path.join(projectRoot, 'src', 'dsh-runner.mjs'),
       to: 'runtime/dsh-runner.mjs',
+    },
+    {
+      from: path.join(projectRoot, 'THIRD_PARTY_LICENSES.txt'),
+      to: 'THIRD_PARTY_LICENSES.txt',
     },
   ],
   win: {

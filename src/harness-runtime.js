@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
-const { execFile, fork } = require('node:child_process');
+const { execFile, execFileSync, fork } = require('node:child_process');
 
 const READY_TITLE = '<title>DeepSeek Harness</title>';
 
@@ -115,7 +115,7 @@ class HarnessRuntime extends EventEmitter {
   }
 
   findDevelopmentNode() {
-    const candidates = [];
+    const candidates = [process.env.npm_node_execpath];
 
     if (process.platform === 'win32') {
       const packageRoot = path.join(
@@ -150,7 +150,28 @@ class HarnessRuntime extends EventEmitter {
       ),
     );
 
-    const executable = candidates.find((candidate) => fs.existsSync(candidate));
+    for (const directory of (process.env.PATH || '').split(path.delimiter)) {
+      if (directory) {
+        candidates.push(path.join(directory, process.platform === 'win32' ? 'node.exe' : 'node'));
+      }
+    }
+
+    const executable = candidates.find((candidate) => {
+      if (!candidate || !fs.existsSync(candidate)) return false;
+      try {
+        const version = execFileSync(candidate, ['--version'], {
+          encoding: 'utf8',
+          windowsHide: true,
+        }).trim();
+        const match = /^v(\d+)\.(\d+)\./.exec(version);
+        if (!match) return false;
+        const major = Number(match[1]);
+        const minor = Number(match[2]);
+        return (major === 22 && minor >= 19) || major >= 24;
+      } catch {
+        return false;
+      }
+    });
     if (!executable) {
       throw new Error('A supported Node.js runtime was not found for development.');
     }

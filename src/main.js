@@ -48,6 +48,16 @@ function saveWorkspace(workspace) {
   fs.writeFileSync(filename, `${JSON.stringify({ workspace }, null, 2)}\n`, 'utf8');
 }
 
+function isHarnessOrigin(rawUrl) {
+  try {
+    return Boolean(
+      runtime?.url && new URL(rawUrl).origin === new URL(runtime.url).origin,
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function resolveWorkspace() {
   const requested = argumentValue('--workspace') || process.env.DSH_WORKSPACE;
   const candidates = [
@@ -102,7 +112,7 @@ function createWindow() {
 
   window.once('ready-to-show', () => window.show());
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (runtime?.url && url.startsWith(runtime.url)) {
+    if (isHarnessOrigin(url)) {
       void window.loadURL(url);
       return { action: 'deny' };
     }
@@ -110,7 +120,7 @@ function createWindow() {
     return { action: 'deny' };
   });
   window.webContents.on('will-navigate', (event, url) => {
-    if (runtime?.url && url.startsWith(runtime.url)) return;
+    if (isHarnessOrigin(url)) return;
     event.preventDefault();
     if (/^https?:|^mailto:/i.test(url)) void shell.openExternal(url);
   });

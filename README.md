@@ -71,10 +71,16 @@ npm start -- --workspace C:\path\to\workspace
 %APPDATA%\deepseek-harness-desktop\dsh\
 ```
 
+## Runtime privacy / 运行时信息
+
+The Node.js sidecar inherits the desktop process environment so provider keys, proxy settings, and tool configuration continue to work. `desktop.log` can contain workspace paths and Harness stdout/stderr; review that file before sharing it in an issue.
+
+Release installers are community builds without a commercial Windows signing certificate. Reproducible workflow artifacts and SHA-256 checksums are generated for every tagged release.
+
 ## Version policy
 
 Desktop releases pin an exact DeepSeek Harness release in `runtime/package.json`. Upstream is currently a developer preview, so dependency upgrades are tested and released explicitly rather than floating on npm `latest`.
 
 ## License
 
-This desktop shell is released under the [MIT License](LICENSE). DeepSeek Harness and bundled third-party components retain their respective licenses; see [NOTICE.md](NOTICE.md).
+This desktop shell is released under the [MIT License](LICENSE). DeepSeek Harness and bundled third-party components retain their respective licenses; see [NOTICE.md](NOTICE.md) and [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt).

@@ -19,6 +19,7 @@
   },
   "scripts": {
     "check": "node --check src/main.js && node --check src/harness-runtime.js && node --check src/dsh-runner.mjs && node --check electron-builder.config.cjs",
+    "licenses": "node scripts/generate-third-party-notices.cjs",
     "runtime:install": "npm --prefix runtime ci --omit=dev --no-audit --no-fund",
     "start": "electron .",
     "smoke": "electron . --smoke-test",

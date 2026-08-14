@@ -9,6 +9,6 @@ DeepSeek Harness Desktop is a community desktop shell built around the following
 - **Node.js** — Copyright Node.js contributors, MIT License and bundled third-party notices.
   Source: https://github.com/nodejs/node
 
-The packaged application also contains the npm dependencies declared by DeepSeek Harness. Their package metadata and license files are preserved in the bundled runtime.
+The packaged application also contains the npm dependencies declared by DeepSeek Harness. Their package metadata and license files are preserved in the bundled runtime. A generated package index and consolidated license texts are available in [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt).
 
 The name “DeepSeek Harness” identifies the upstream open-source project. This repository is maintained independently by its contributors.

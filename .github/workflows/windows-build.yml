@@ -56,6 +56,8 @@ jobs:
         shell: pwsh
         run: |
           npm run check
+          npm run licenses
+          git diff --exit-code -- THIRD_PARTY_LICENSES.txt
           $expected = node -p "require('./runtime/package.json').dependencies['@deepseek-ai/dsh']"
           $actual = node -p "require('./runtime/node_modules/@deepseek-ai/dsh/package.json').version"
           if ($expected -ne $actual) {
