@@ -1,0 +1,144 @@
+name: Windows build and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 75
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.14.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            runtime/package-lock.json
+
+      - name: Pin sidecar Node and verify tag
+        shell: pwsh
+        run: |
+          $nodePath = node -p "process.execPath"
+          "DSH_NODE_PATH=$nodePath" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $version = node -p "require('./package.json').version"
+            if ($env:GITHUB_REF_NAME -ne "v$version") {
+              throw "Tag $env:GITHUB_REF_NAME does not match package version v$version"
+            }
+          }
+
+      - name: Install desktop dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install locked Harness runtime
+        run: npm run runtime:install
+
+      - name: Verify source and locked runtime
+        shell: pwsh
+        run: |
+          npm run check
+          $expected = node -p "require('./runtime/package.json').dependencies['@deepseek-ai/dsh']"
+          $actual = node -p "require('./runtime/node_modules/@deepseek-ai/dsh/package.json').version"
+          if ($expected -ne $actual) {
+            throw "DeepSeek Harness version mismatch: $expected != $actual"
+          }
+
+      - name: Development smoke test
+        run: npm run smoke
+
+      - name: Build NSIS x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist -- --publish never
+
+      - name: Smoke-test packaged application
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path '.\release\win-unpacked\DeepSeek Harness Desktop.exe').Path
+          $process = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Packaged smoke test failed: $($process.ExitCode)"
+          }
+
+      - name: Write checksums
+        shell: pwsh
+        run: |
+          $assets = Get-ChildItem release -File | Where-Object {
+            $_.Name -like '*-Setup.exe' -or $_.Extension -eq '.blockmap'
+          }
+          if (-not $assets) { throw 'No release assets found' }
+          $lines = foreach ($file in $assets | Sort-Object Name) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          [IO.File]::WriteAllLines(
+            (Join-Path (Resolve-Path release) 'SHA256SUMS.txt'),
+            $lines,
+            [Text.UTF8Encoding]::new($false)
+          )
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-x64-${{ github.sha }}
+          path: |
+            release/*-Setup.exe
+            release/*.blockmap
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+      artifact-metadata: read
+
+    steps:
+      - name: Download verified assets
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-x64-${{ github.sha }}
+          path: release-assets
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          files=(release-assets/*)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            extra=()
+            [[ "$TAG" == *-* ]] && extra+=(--prerelease)
+            gh release create "$TAG" "${files[@]}" \
+              --verify-tag --generate-notes \
+              --title "DeepSeek Harness Desktop $TAG" "${extra[@]}"
+          fi

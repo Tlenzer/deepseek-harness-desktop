@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>正在启动 DeepSeek Harness</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #eaf3ff;
+        background:
+          radial-gradient(circle at 50% 40%, rgba(38, 181, 255, 0.18), transparent 32rem),
+          #07111f;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+      main { text-align: center; }
+      .mark {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 24px;
+        border: 2px solid rgba(113, 211, 255, 0.22);
+        border-top-color: #62d7ff;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      h1 { margin: 0 0 10px; font-size: 24px; font-weight: 650; letter-spacing: -0.02em; }
+      p { margin: 0; color: #8fa6bd; font-size: 14px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .mark { animation-duration: 2.4s; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true"></div>
+      <h1>DeepSeek Harness</h1>
+      <p>正在启动本地 Agent Runtime…</p>
+    </main>
+  </body>
+</html>
