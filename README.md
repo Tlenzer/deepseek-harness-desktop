@@ -75,7 +75,7 @@ npm start -- --workspace C:\path\to\workspace
 
 The Node.js sidecar inherits the desktop process environment so provider keys, proxy settings, and tool configuration continue to work. `desktop.log` can contain workspace paths and Harness stdout/stderr; review that file before sharing it in an issue.
 
-Release installers are community builds without a commercial Windows signing certificate. Reproducible workflow artifacts and SHA-256 checksums are generated for every tagged release.
+Release installers are community builds without a commercial Windows signing certificate. CI-built workflow artifacts and SHA-256 checksums are generated for every tagged release.
 
 ## Version policy
 
