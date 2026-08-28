@@ -5,6 +5,6 @@
   "description": "Pinned production runtime for DeepSeek Harness Desktop",
   "license": "MIT",
   "dependencies": {
-    "@deepseek-ai/dsh": "0.1.0-rc.6"
+    "@deepseek-ai/dsh": "0.1.0-rc.8"
   }
 }
