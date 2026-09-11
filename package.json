@@ -27,7 +27,7 @@
     "dist": "electron-builder --win nsis --x64 --config electron-builder.config.cjs"
   },
   "devDependencies": {
-    "electron": "43.4.0",
+    "electron": "44.2.0",
     "electron-builder": "26.15.7"
   }
 }
